@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion'
 import { useTelemetry } from '../store/telemetry'
 import { useSettings } from '../store/settings'
 
@@ -45,12 +46,17 @@ export default function Overview() {
 
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
         {metrics.map((m) => (
-          <div key={m.label} className="bg-surface border border-line rounded-md p-4">
+          <div key={m.label} className="bg-surface border border-line rounded-md p-4 transition hover:border-brand/40 hover:shadow-sm">
             <div className="text-xs text-muted mb-2">{m.label}</div>
-            <div className="text-2xl font-semibold tabular-nums">
+            <motion.div
+              key={m.value}
+              initial={{ opacity: 0.4 }}
+              animate={{ opacity: 1 }}
+              className="text-2xl font-semibold tabular-nums"
+            >
               {m.value}
               <span className="text-sm font-normal text-muted ml-1">{m.unit}</span>
-            </div>
+            </motion.div>
           </div>
         ))}
       </div>
@@ -72,7 +78,13 @@ export default function Overview() {
           </thead>
           <tbody>
             {events.slice(0, 15).map((e, i) => (
-              <tr key={e.sensorId + e.timestamp + i} className="border-t border-line">
+              <motion.tr
+                key={e.sensorId + e.timestamp + i}
+                initial={{ opacity: 0, backgroundColor: '#f4f5f7' }}
+                animate={{ opacity: 1, backgroundColor: '#ffffff' }}
+                transition={{ duration: 0.6 }}
+                className="border-t border-line"
+              >
                 <td className="px-4 py-2 text-muted tabular-nums">{clock(e.timestamp)}</td>
                 <td className="px-4 py-2 font-mono text-xs">{e.sensorId}</td>
                 <td className="px-4 py-2">{e.zone}</td>
@@ -81,7 +93,7 @@ export default function Overview() {
                 <td className="px-4 py-2 tabular-nums">{e.vibrationMm}</td>
                 <td className="px-4 py-2">{e.eventType}</td>
                 <td className={`px-4 py-2 font-medium ${statusColor[e.status]}`}>{e.status}</td>
-              </tr>
+              </motion.tr>
             ))}
             {!events.length && (
               <tr><td colSpan="8" className="px-4 py-6 text-center text-muted">Waiting for readings...</td></tr>

@@ -36,15 +36,15 @@ export default function Analytics() {
       {error && <p className="text-sm text-critical mb-4">Could not load summary: {error}</p>}
 
       <div className="grid grid-cols-3 gap-4 mb-8">
-        <div className="bg-surface border border-line rounded-md p-4">
+        <div className="bg-surface border border-line rounded-md p-4 transition hover:border-brand/40 hover:shadow-sm">
           <div className="text-xs text-muted mb-2">Readings in window</div>
           <div className="text-2xl font-semibold tabular-nums">{data?.totalReadings ?? '--'}</div>
         </div>
-        <div className="bg-surface border border-line rounded-md p-4">
+        <div className="bg-surface border border-line rounded-md p-4 transition hover:border-brand/40 hover:shadow-sm">
           <div className="text-xs text-muted mb-2">Server uptime</div>
           <div className="text-2xl font-semibold tabular-nums">{data ? Math.floor(data.uptimeSec / 60) : '--'}<span className="text-sm font-normal text-muted ml-1">min</span></div>
         </div>
-        <div className="bg-surface border border-line rounded-md p-4">
+        <div className="bg-surface border border-line rounded-md p-4 transition hover:border-brand/40 hover:shadow-sm">
           <div className="text-xs text-muted mb-2">Zones reporting</div>
           <div className="text-2xl font-semibold tabular-nums">{data?.zones.length ?? '--'}</div>
         </div>
@@ -52,7 +52,7 @@ export default function Analytics() {
 
       <div className="grid lg:grid-cols-3 gap-4 mb-8">
         {metrics.map((m) => (
-          <div key={m.key} className="bg-surface border border-line rounded-md p-4">
+          <div key={m.key} className="bg-surface border border-line rounded-md p-4 transition hover:border-brand/40 hover:shadow-sm">
             <div className="text-sm font-medium mb-3">{m.label}</div>
             <div className="h-48">
               <ResponsiveContainer>
@@ -61,7 +61,7 @@ export default function Analytics() {
                   <XAxis dataKey="zone" tick={{ fontSize: 10 }} interval={0} />
                   <YAxis tick={{ fontSize: 11 }} />
                   <Tooltip formatter={(v) => `${v}${m.unit}`} cursor={{ fill: '#f4f5f7' }} />
-                  <Bar dataKey={m.key} fill={m.color} radius={[2, 2, 0, 0]} isAnimationActive={false} />
+                  <Bar dataKey={m.key} fill={m.color} radius={[2, 2, 0, 0]} animationDuration={400} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

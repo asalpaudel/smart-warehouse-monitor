@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { AnimatePresence, motion } from 'framer-motion'
 import { useSession } from '../store/session'
 import { useTelemetry } from '../store/telemetry'
 import { useSettings } from '../store/settings'
@@ -16,6 +17,7 @@ export default function Layout() {
   const user = useSession((s) => s.user)
   const { connect, disconnect } = useTelemetry()
   const livePaused = useSettings((s) => s.livePaused)
+  const { pathname } = useLocation()
 
   useEffect(() => {
     if (!livePaused) connect()
@@ -46,8 +48,18 @@ export default function Layout() {
           Signed in as {user?.username}
         </div>
       </aside>
-      <main className="flex-1 p-8">
-        <Outlet />
+      <main className="flex-1 p-8 overflow-x-hidden">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={pathname}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.15 }}
+          >
+            <Outlet />
+          </motion.div>
+        </AnimatePresence>
       </main>
     </div>
   )

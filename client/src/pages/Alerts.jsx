@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { usePolling } from '../hooks/usePolling'
 import { useTelemetry } from '../store/telemetry'
 import { useSettings } from '../store/settings'
@@ -117,9 +118,23 @@ export default function Alerts() {
         </table>
       </div>
 
+      <AnimatePresence>
       {selected && (
-        <div className="fixed inset-0 bg-black/30 flex justify-end" onClick={() => setSelected(null)}>
-          <div className="w-96 h-full bg-surface border-l border-line p-6 overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <motion.div
+          className="fixed inset-0 bg-black/30 flex justify-end"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={() => setSelected(null)}
+        >
+          <motion.div
+            className="w-96 h-full bg-surface border-l border-line p-6 overflow-y-auto"
+            initial={{ x: 40 }}
+            animate={{ x: 0 }}
+            exit={{ x: 40 }}
+            transition={{ type: 'tween', duration: 0.2 }}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-start justify-between mb-4">
               <div>
                 <div className="font-mono text-sm">{selected.sensorId}</div>
@@ -170,9 +185,10 @@ export default function Alerts() {
             ) : (
               <p className="text-xs text-muted">Nothing from this sensor in the live buffer yet</p>
             )}
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </div>
   )
 }
