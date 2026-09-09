@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
+import { useSession } from '../store/session'
 
 const links = [
   ['/dashboard', 'Overview'],
@@ -9,6 +10,8 @@ const links = [
 ]
 
 export default function Layout() {
+  const user = useSession((s) => s.user)
+
   return (
     <div className="flex min-h-screen">
       <aside className="w-56 shrink-0 bg-brand text-white flex flex-col">
@@ -29,6 +32,9 @@ export default function Layout() {
             </NavLink>
           ))}
         </nav>
+        <div className="px-5 py-4 text-xs text-white/60 border-t border-white/15">
+          Signed in as {user?.username}
+        </div>
       </aside>
       <main className="flex-1 p-8">
         <Outlet />
