@@ -40,5 +40,6 @@ export function requireAuth(req, res, next) {
 
 function bearer(req) {
   const h = req.headers.authorization || ''
-  return h.startsWith('Bearer ') ? h.slice(7) : null
+  // EventSource cant set headers so the stream passes the token in the url
+  return h.startsWith('Bearer ') ? h.slice(7) : req.query.token
 }
