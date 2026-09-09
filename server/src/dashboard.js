@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { requireAuth } from './auth.js'
-import { history, sensors } from './telemetry.js'
+import { history, sensors, thresholds } from './telemetry.js'
 
 const WINDOW_MS = 60 * 1000
 const startedAt = Date.now()
@@ -62,4 +62,38 @@ dashboard.get('/summary', (req, res) => {
     sensorCount: sensors.length,
     zones,
   })
+})
+
+dashboard.get('/alerts', (req, res) => {
+  const now = Date.now()
+  const seen = {}
+  for (const r of history) {
+    for (const metric of Object.keys(thresholds)) {
+      const t = thresholds[metric]
+      if (r[metric] < t.warn) continue
+      const severity = r[metric] >= t.critical ? 'CRITICAL' : 'WARN'
+      const key = `${r.sensorId}:${metric}`
+      const a = (seen[key] ||= {
+        id: key,
+        sensorId: r.sensorId,
+        zone: r.zone,
+        metric,
+        severity,
+        value: r[metric],
+        threshold: t.warn,
+        firstSeen: r.timestamp,
+        lastSeen: r.timestamp,
+        count: 0,
+      })
+      a.count++
+      a.lastSeen = r.timestamp
+      a.value = r[metric]
+      if (severity === 'CRITICAL') {
+        a.severity = 'CRITICAL'
+        a.threshold = t.critical
+      }
+    }
+  }
+  const alerts = Object.values(seen).sort((a, b) => b.lastSeen.localeCompare(a.lastSeen))
+  res.json({ generatedAt: new Date(now).toISOString(), thresholds, alerts })
 })
