@@ -1,5 +1,7 @@
+import { useEffect } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { useSession } from '../store/session'
+import { useTelemetry } from '../store/telemetry'
 
 const links = [
   ['/dashboard', 'Overview'],
@@ -11,6 +13,12 @@ const links = [
 
 export default function Layout() {
   const user = useSession((s) => s.user)
+  const { connect, disconnect } = useTelemetry()
+
+  useEffect(() => {
+    connect()
+    return disconnect
+  }, [connect, disconnect])
 
   return (
     <div className="flex min-h-screen">

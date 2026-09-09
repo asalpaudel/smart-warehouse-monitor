@@ -1,17 +1,4 @@
-// numbers are placeholders until the stream is wired up
-const metrics = [
-  { label: 'Avg temperature', value: '4.2', unit: '°C' },
-  { label: 'Avg humidity', value: '58', unit: '%' },
-  { label: 'Peak vibration', value: '1.8', unit: 'mm/s' },
-  { label: 'Active sensors', value: '12', unit: '' },
-  { label: 'Critical', value: '0', unit: '' },
-]
-
-const events = [
-  { time: '14:02:11', sensor: 'sensor-1', zone: 'Cold Storage', type: 'UPDATE', status: 'OK' },
-  { time: '14:02:10', sensor: 'sensor-5', zone: 'Loading Bay', type: 'ALERT', status: 'WARN' },
-  { time: '14:02:09', sensor: 'sensor-8', zone: 'Aisle A', type: 'UPDATE', status: 'OK' },
-]
+import { useTelemetry } from '../store/telemetry'
 
 const statusColor = {
   OK: 'text-ok',
@@ -19,7 +6,27 @@ const statusColor = {
   CRITICAL: 'text-critical',
 }
 
+function avg(list, key) {
+  if (!list.length) return 0
+  return list.reduce((a, s) => a + s[key], 0) / list.length
+}
+
+function clock(iso) {
+  return iso ? new Date(iso).toLocaleTimeString('en-GB') : '--:--:--'
+}
+
 export default function Overview() {
+  const { sensors, events, lastUpdate, connected } = useTelemetry()
+  const list = Object.values(sensors)
+
+  const metrics = [
+    { label: 'Avg temperature', value: avg(list, 'temperatureC').toFixed(1), unit: '°C' },
+    { label: 'Avg humidity', value: avg(list, 'humidityPct').toFixed(0), unit: '%' },
+    { label: 'Peak vibration', value: Math.max(0, ...list.map((s) => s.vibrationMm)).toFixed(2), unit: 'mm/s' },
+    { label: 'Active sensors', value: list.length, unit: '' },
+    { label: 'Critical', value: list.filter((s) => s.status === 'CRITICAL').length, unit: '' },
+  ]
+
   return (
     <div>
       <div className="flex items-end justify-between mb-6">
@@ -28,9 +35,9 @@ export default function Overview() {
           <p className="text-sm text-muted">Live readings from all warehouse zones</p>
         </div>
         <div className="text-sm text-muted flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-ok" />
-          <span className="font-medium text-ink">LIVE</span>
-          <span>Last update 14:02:11</span>
+          <span className={`w-2 h-2 rounded-full ${connected ? 'bg-ok animate-pulse' : 'bg-critical'}`} />
+          <span className="font-medium text-ink">{connected ? 'LIVE' : 'OFFLINE'}</span>
+          <span>Last update {clock(lastUpdate)}</span>
         </div>
       </div>
 
@@ -38,7 +45,7 @@ export default function Overview() {
         {metrics.map((m) => (
           <div key={m.label} className="bg-surface border border-line rounded-md p-4">
             <div className="text-xs text-muted mb-2">{m.label}</div>
-            <div className="text-2xl font-semibold">
+            <div className="text-2xl font-semibold tabular-nums">
               {m.value}
               <span className="text-sm font-normal text-muted ml-1">{m.unit}</span>
             </div>
@@ -54,20 +61,29 @@ export default function Overview() {
               <th className="px-4 py-2 font-medium">Time</th>
               <th className="px-4 py-2 font-medium">Sensor</th>
               <th className="px-4 py-2 font-medium">Zone</th>
+              <th className="px-4 py-2 font-medium">Temp</th>
+              <th className="px-4 py-2 font-medium">Humidity</th>
+              <th className="px-4 py-2 font-medium">Vibration</th>
               <th className="px-4 py-2 font-medium">Event</th>
               <th className="px-4 py-2 font-medium">Status</th>
             </tr>
           </thead>
           <tbody>
-            {events.map((e, i) => (
-              <tr key={i} className="border-t border-line">
-                <td className="px-4 py-2 text-muted">{e.time}</td>
-                <td className="px-4 py-2 font-mono text-xs">{e.sensor}</td>
+            {events.slice(0, 15).map((e, i) => (
+              <tr key={e.sensorId + e.timestamp + i} className="border-t border-line">
+                <td className="px-4 py-2 text-muted tabular-nums">{clock(e.timestamp)}</td>
+                <td className="px-4 py-2 font-mono text-xs">{e.sensorId}</td>
                 <td className="px-4 py-2">{e.zone}</td>
-                <td className="px-4 py-2">{e.type}</td>
+                <td className="px-4 py-2 tabular-nums">{e.temperatureC}°C</td>
+                <td className="px-4 py-2 tabular-nums">{e.humidityPct}%</td>
+                <td className="px-4 py-2 tabular-nums">{e.vibrationMm}</td>
+                <td className="px-4 py-2">{e.eventType}</td>
                 <td className={`px-4 py-2 font-medium ${statusColor[e.status]}`}>{e.status}</td>
               </tr>
             ))}
+            {!events.length && (
+              <tr><td colSpan="8" className="px-4 py-6 text-center text-muted">Waiting for readings...</td></tr>
+            )}
           </tbody>
         </table>
       </div>
