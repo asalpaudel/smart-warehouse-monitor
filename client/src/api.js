@@ -12,7 +12,7 @@ export async function api(path, options = {}) {
     body: options.body ? JSON.stringify(options.body) : undefined,
   })
   if (res.status === 401 && token) {
-    useSession.getState().logout()
+    useSession.getState().logout(true)
     throw new Error('session expired')
   }
   if (!res.ok) {

@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { useSession } from './session'
+import { api } from '../api'
 
 const MAX_EVENTS = 60
 
@@ -14,7 +15,11 @@ export const useTelemetry = create((set, get) => ({
     const token = useSession.getState().token
     const source = new EventSource(`/api/stream/telemetry?token=${token}`)
     source.onopen = () => set({ connected: true })
-    source.onerror = () => set({ connected: false })
+    source.onerror = () => {
+      set({ connected: false })
+      // browser hides the status code, so check the session ourselves when the stream closes
+      if (source.readyState === EventSource.CLOSED) api('/auth/me').catch(() => {})
+    }
     source.onmessage = (e) => {
       const r = JSON.parse(e.data)
       set((s) => ({

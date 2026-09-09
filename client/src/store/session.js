@@ -6,8 +6,9 @@ export const useSession = create(
     (set) => ({
       token: null,
       user: null,
-      setSession: ({ token, user }) => set({ token, user }),
-      logout: () => set({ token: null, user: null }),
+      expired: false,
+      setSession: ({ token, user }) => set({ token, user, expired: false }),
+      logout: (expired = false) => set({ token: null, user: null, expired }),
     }),
     { name: 'swm-session', storage: createJSONStorage(() => sessionStorage) },
   ),

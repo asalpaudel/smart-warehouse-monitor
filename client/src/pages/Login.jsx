@@ -4,7 +4,7 @@ import { useSession } from '../store/session'
 import { api } from '../api'
 
 export default function Login() {
-  const setSession = useSession((s) => s.setSession)
+  const { setSession, expired } = useSession()
   const navigate = useNavigate()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -31,6 +31,12 @@ export default function Login() {
       <form onSubmit={submit} className="w-full max-w-sm bg-surface border border-line rounded-md p-8">
         <h1 className="text-xl font-semibold">Smart Warehouse Monitor</h1>
         <p className="text-sm text-muted mt-1 mb-6">Sign in to view sensor activity</p>
+
+        {expired && (
+          <p className="text-sm bg-warn/10 text-warn border border-warn/30 rounded px-3 py-2 mb-4">
+            Your session expired, please sign in again
+          </p>
+        )}
 
         <label className="block text-sm mb-1" htmlFor="username">Username</label>
         <input

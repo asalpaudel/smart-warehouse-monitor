@@ -1,5 +1,7 @@
+import { useEffect } from 'react'
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import { useSession } from './store/session'
+import { api } from './api'
 import Layout from './components/Layout'
 import Login from './pages/Login'
 import Overview from './pages/Overview'
@@ -14,6 +16,12 @@ function RequireAuth() {
 }
 
 export default function App() {
+  const token = useSession((s) => s.token)
+
+  useEffect(() => {
+    if (token) api('/auth/me').catch(() => {})
+  }, [token])
+
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
