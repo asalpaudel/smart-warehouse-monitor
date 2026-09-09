@@ -1,18 +1,29 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSession } from '../store/session'
+import { api } from '../api'
 
 export default function Login() {
-  const login = useSession((s) => s.login)
+  const setSession = useSession((s) => s.setSession)
   const navigate = useNavigate()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
 
-  function submit(e) {
+  async function submit(e) {
     e.preventDefault()
-    if (login(username.trim(), password)) navigate('/dashboard')
-    else setError('Wrong username or password')
+    setBusy(true)
+    setError('')
+    try {
+      const data = await api('/auth/login', { method: 'POST', body: { username: username.trim(), password } })
+      setSession(data)
+      navigate('/dashboard')
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setBusy(false)
+    }
   }
 
   return (
@@ -44,8 +55,11 @@ export default function Login() {
 
         {error && <p className="text-sm text-critical mb-3">{error}</p>}
 
-        <button className="w-full bg-brand hover:bg-brand-dark text-white rounded py-2 text-sm font-medium">
-          Sign in
+        <button
+          disabled={busy}
+          className="w-full bg-brand hover:bg-brand-dark disabled:opacity-60 text-white rounded py-2 text-sm font-medium"
+        >
+          {busy ? 'Signing in...' : 'Sign in'}
         </button>
 
         <p className="text-xs text-muted mt-5">Demo login: operator / warehouse123</p>
