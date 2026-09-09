@@ -1,8 +1,9 @@
 import { useEffect, useState, useCallback } from 'react'
 import { api } from '../api'
+import { useSettings } from '../store/settings'
 
-// interval should come from settings once that page exists
-export function usePolling(path, intervalMs = 10000) {
+export function usePolling(path) {
+  const intervalMs = useSettings((s) => s.pollIntervalSec) * 1000
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
   const [updatedAt, setUpdatedAt] = useState(null)

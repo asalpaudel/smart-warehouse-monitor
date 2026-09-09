@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { usePolling } from '../hooks/usePolling'
 import { useTelemetry } from '../store/telemetry'
+import { useSettings } from '../store/settings'
 
 const severityColor = { WARN: 'text-warn', CRITICAL: 'text-critical' }
 const metricLabel = { temperatureC: 'Temperature', humidityPct: 'Humidity', vibrationMm: 'Vibration' }
@@ -13,6 +14,7 @@ function clock(iso) {
 export default function Alerts() {
   const { data, error, updatedAt } = usePolling('/dashboard/alerts')
   const events = useTelemetry((s) => s.events)
+  const thresholds = useSettings((s) => s.thresholds)
 
   const [zone, setZone] = useState('')
   const [severity, setSeverity] = useState('')
@@ -26,11 +28,12 @@ export default function Alerts() {
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase()
     return alerts
+      .filter((a) => a.value >= thresholds[a.metric])
       .filter((a) => !zone || a.zone === zone)
       .filter((a) => !severity || a.severity === severity)
       .filter((a) => !q || a.sensorId.toLowerCase().includes(q) || a.zone.toLowerCase().includes(q))
       .sort((a, b) => (a[sort.key] > b[sort.key] ? 1 : a[sort.key] < b[sort.key] ? -1 : 0) * sort.dir)
-  }, [alerts, zone, severity, query, sort])
+  }, [alerts, thresholds, zone, severity, query, sort])
 
   function toggleSort(key) {
     setSort((s) => (s.key === key ? { key, dir: -s.dir } : { key, dir: 1 }))

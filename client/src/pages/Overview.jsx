@@ -1,4 +1,5 @@
 import { useTelemetry } from '../store/telemetry'
+import { useSettings } from '../store/settings'
 
 const statusColor = {
   OK: 'text-ok',
@@ -17,6 +18,7 @@ function clock(iso) {
 
 export default function Overview() {
   const { sensors, events, lastUpdate, connected } = useTelemetry()
+  const livePaused = useSettings((s) => s.livePaused)
   const list = Object.values(sensors)
 
   const metrics = [
@@ -35,8 +37,8 @@ export default function Overview() {
           <p className="text-sm text-muted">Live readings from all warehouse zones</p>
         </div>
         <div className="text-sm text-muted flex items-center gap-2">
-          <span className={`w-2 h-2 rounded-full ${connected ? 'bg-ok animate-pulse' : 'bg-critical'}`} />
-          <span className="font-medium text-ink">{connected ? 'LIVE' : 'OFFLINE'}</span>
+          <span className={`w-2 h-2 rounded-full ${connected ? 'bg-ok animate-pulse' : livePaused ? 'bg-warn' : 'bg-critical'}`} />
+          <span className="font-medium text-ink">{connected ? 'LIVE' : livePaused ? 'PAUSED' : 'OFFLINE'}</span>
           <span>Last update {clock(lastUpdate)}</span>
         </div>
       </div>
